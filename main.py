@@ -1,3 +1,6 @@
+import random
+import json
+
 print("=====================")
 print("Student Grade Manager")
 print("=====================")
@@ -10,15 +13,9 @@ print()
 print(f"Hello {teacher_name}! Welcome to your very own Student Grade Manager!")
 print()
 
-with open("students.txt", "r") as var_file:
-    students = var_file.readlines()
+with open("students.json", "r") as var_file:
+    students = json.load(var_file)
     
-    clean_students = []
-
-    for student in students:
-        clean_students.append(student.strip())
-
-    students = clean_students
         
 while running:
     print("1. Add student")
@@ -31,66 +28,97 @@ while running:
     option_num = int(input("What would you like to do? "))
 
     if option_num == 1:
-        added_student = input("Student name: ").title()
-        students.append(added_student)
-        students.sort()
+        added_student = input("Student first and last name: ").title()
+        student_age = int(input("Enter student age: "))
+        student_id = random.randint(10000, 99999)
         
-        with open("students.txt", "w") as var_file:
-            for student in students:
-                var_file.write(student + "\n")
+        new_student = {
+            "name": added_student,
+            "age": student_age,
+            "Student ID": student_id
+        }
+        students.append(new_student)
+        students.sort(key=lambda student: student["name"])
+    
+        
+        with open("students.json", "w") as var_file:
+            json.dump(students, var_file, indent = 4)
 
-        
         print(f"{added_student} has been added to your class!")
+        
+
 
     elif option_num == 2:
+        students.sort(key=lambda student: student["name"])
         print("----------------")
         print(f"{teacher_name}'s Class List!")
         print("----------------")
         
+        
         for student in students:
-            print(student)
+            print(f"Name: {student['name']}")
+            print(f"Age: {student['age']}")
+            print(f"Student ID: {student['Student ID']}")
             print()
     
-        del student
         
+
     elif option_num == 3:
-        var_remove = input("Enter full student name: ").title()
-        var_confirmation = input("Are you sure you'd like to remove this student and all their data? ").title()
+        var_remove = int(input("Enter student ID: "))
+        
+        student_found = False
+        
+        for student in students:
+            if var_remove == student["Student ID"]:
+                student_found = True
+                var_confirmation = input("Are you sure you'd like to remove this student and all their data? ").title()
+                if var_confirmation == "Yes":
+                    students.remove(student)
+                    print(f"{student['name']} ({student['Student ID']}) has been removed from your class.")
 
-        if var_confirmation == "Yes":
-            if var_remove in students:
-                students.remove(var_remove)
-                print(f"{var_remove} has been removed from your class.")
+                    with open("students.json", "w") as var_file:
+                        json.dump(students, var_file, indent = 4)
 
-                with open("students.txt", "w") as var_file:
-                    for student in students:
-                        var_file.write(student + "\n")
-               
-            else:
-                print("Student does not exist.")
+                break
+
+        if student_found == False:
+            print("Student does not exist.")
+            
 
 
     elif option_num == 4:
         var_search = input("Search student name: ").title()
-        
-        if var_search in students:
-            print(f"{var_search} is enrolled in this class.")
-            edit_confirm = input("Would you like to edit this student? ").title()
+        student_found = False
 
-            if edit_confirm == "Yes":
-                edit_student = input("Enter students new name: ").title()
-                student_index = students.index(var_search)
-                students[student_index] = edit_student
-                students.sort()
-                print(f"{var_search} has successfully been edited to {edit_student}!!!")
+        for student in students:
+            if var_search == student["name"]:
+                student_found = True
+                print(f"{student['name']} ({student['Student ID']}) is enrolled in this class.")
+                edit_confirm = input("Would you like to edit this student? ").title()
 
-                with open("students.txt", "w") as var_file:
-                    for student in students:
-                        var_file.write(student + "\n")
-        
+                if edit_confirm == "Yes":
+                    edit_option = input("What would you like to edit (name or age)? ").title()
 
-        else:
+                    if edit_option == "Name":
+                        edit_name = input("Enter students new name: ").title()
+                        student["name"] = edit_name
+                        students.sort(key=lambda student: student["name"])
+                        
+                        print(f"{var_search} has successfully been edited to {edit_name}!!!")                        
+                        
+                        with open("students.json", "w") as var_file:
+                            json.dump(students, var_file, indent = 4)
+
+                    elif edit_option == "Age":
+                        edit_age = int(input("Enter students proper age: "))
+                        student["age"] = edit_age
+                        print(f"{student['name']} age has been changed to {student['age']}.")
+                        with open("students.json", "w") as var_file:
+                            json.dump(students, var_file, indent = 4)
+                        
+        if student_found == False:
             print("Student not found.")
+
 
 
     elif option_num == 5:
